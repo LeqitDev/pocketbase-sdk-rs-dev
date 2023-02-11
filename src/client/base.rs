@@ -51,7 +51,7 @@ impl Client {
         &self,
         path: String,
         body: &T
-    ) -> Result<Response, Box<dyn error::Error>>
+    ) -> Result<Response, Box<dyn error::Error + Send>>
     {
         match self.base_url.join(path.as_str()) {
             Ok(request_url) => {
@@ -84,10 +84,10 @@ impl Client {
 
                 match authed_req.send().await {
                     Ok(response) => Ok(response),
-                    Err(e) => Err(Box::new(e) as Box<dyn error::Error>)
+                    Err(e) => Err(Box::new(e) as Box<dyn error::Error + Send>)
                 }
             },
-            Err(e) => Err(Box::new(e) as Box<dyn error::Error>)
+            Err(e) => Err(Box::new(e) as Box<dyn error::Error + Send>)
         }
     }
 

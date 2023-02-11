@@ -46,7 +46,7 @@ impl Client {
         &mut self,
         email: String, password: String,
         usertype: UserTypes
-    ) -> Result<(), Box<dyn Error>>
+    ) -> Result<(), Box<dyn Error + Send>>
     {
         let mut credentials: HashMap<String, String> = HashMap::new();
         credentials.insert(String::from("identity"), email);
@@ -58,13 +58,13 @@ impl Client {
         }
     }
 
-    async fn authenticate_user(&mut self, credentials: &HashMap<String, String>) -> Result<(), Box<dyn Error>> {
+    async fn authenticate_user(&mut self, credentials: &HashMap<String, String>) -> Result<(), Box<dyn Error + Send>> {
         let auth_response = self.post(String::from("collections/users/auth-with-password"), &credentials).await;
         let parsed_resp   = match auth_response {
             Ok(response) => {
                 match response.json::<AuthResponse>().await {
                     Ok(resp) => Ok(resp),
-                    Err(err) => Err(Box::new(err) as Box<dyn Error>)
+                    Err(err) => Err(Box::new(err) as Box<dyn Error + Send>)
                 }
             },
             Err(err) => Err(err)
@@ -84,7 +84,7 @@ impl Client {
                         Ok(())
                     },
                     AuthResponse::FailureAuthResponse(_response) => {
-                        Err(Box::new(AuthenticationError))
+                        Err(Box::new(AuthenticationError) as Box<dyn Error + Send>)
                     }
                 }
             },
@@ -93,13 +93,13 @@ impl Client {
 
     }
 
-    async fn authenticate_admin(&mut self, credentials: &HashMap<String, String>) -> Result<(), Box<dyn Error>> {
+    async fn authenticate_admin(&mut self, credentials: &HashMap<String, String>) -> Result<(), Box<dyn Error + Send>> {
         let auth_response = self.post(String::from("admins/auth-with-password"), &credentials).await;
         let parsed_resp   = match auth_response {
             Ok(response) => {
                 match response.json::<AuthResponse>().await {
                     Ok(resp) => Ok(resp),
-                    Err(err) => Err(Box::new(err) as Box<dyn Error>)
+                    Err(err) => Err(Box::new(err) as Box<dyn Error + Send>)
                 }
             },
             Err(err) => Err(err)
